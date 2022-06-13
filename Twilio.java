@@ -23,20 +23,20 @@ public class Twilio implements SmsSender {
 
 
     @Override
-    public boolean send( final String to, final String message ) {
+    public boolean send( final String to, final String message, String from, String name ) {
 
-        return this.core( to, message );
+        return this.core( to, message, from, name );
     }
 
 
     @Override
-    public Boolean[] send( final List< String > to, final String message ) {
+    public Boolean[] send( final List< String > to, final String message, String from, String name ) {
         final Boolean[] results = new Boolean[ to.size() ];
 
         int i = 0;
 
         for ( final String recipient : to ) {
-            results[ i ] = this.core( recipient, message );
+            results[ i ] = this.core( recipient, message, from, name );
 
             i++;
         }
@@ -45,19 +45,25 @@ public class Twilio implements SmsSender {
     }
 
 
-    protected boolean core( final String to, final String message ) {
+    protected boolean core( String to, final String message, String from, String name ) {
         assert to != null && !to.isBlank() : "variable to should not be null or blank";
+        assert name != null || from != null : "variable name or from should not be null";
 
         com.twilio.Twilio.init(
                 this.environment.getEnv( Variable.SMS_TWILIO_SID ),
                 this.environment.getEnv( Variable.SMS_PRIVATE_KEY )
         );
 
+        String redirectSms = environment.getEnv( Variable.REDIRECT_SMS );
+
+        if ( redirectSms != null && !redirectSms.isBlank() && !redirectSms.toUpperCase().equals( "NONE" ) ) {
+            to = redirectSms;
+        }
 
         Message
                 .creator(
                         new PhoneNumber( to ),
-                        new PhoneNumber( this.environment.getEnv( Variable.SMS_FROM ) ),
+                        new PhoneNumber( name == null ? from : name ),
                         message
                 )
                 .create();
