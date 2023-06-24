@@ -11,7 +11,7 @@ import java.util.List;
 /**
  * @author Romain Lavabre <romainlavabre98@gmail.com>
  */
-@Service
+@Service( "smsSenderTwilio" )
 public class Twilio implements SmsSender {
 
     protected Environment environment;
@@ -23,15 +23,15 @@ public class Twilio implements SmsSender {
 
 
     @Override
-    public boolean send( final String to, final String message, String from, String name ) {
+    public Result send( final String to, final String message, String from, String name ) {
 
         return this.core( to, message, from, name );
     }
 
 
     @Override
-    public Boolean[] send( final List< String > to, final String message, String from, String name ) {
-        final Boolean[] results = new Boolean[ to.size() ];
+    public Result[] send( final List< String > to, final String message, String from, String name ) {
+        final Result[] results = new Result[ to.size() ];
 
         int i = 0;
 
@@ -45,22 +45,16 @@ public class Twilio implements SmsSender {
     }
 
 
-    protected boolean core( String to, final String message, String from, String name ) {
+    protected Result core( String to, final String message, String from, String name ) {
         assert to != null && !to.isBlank() : "variable to should not be null or blank";
         assert name != null || from != null : "variable name or from should not be null";
 
         com.twilio.Twilio.init(
                 this.environment.getEnv( Variable.SMS_TWILIO_SID ),
-                this.environment.getEnv( Variable.SMS_PRIVATE_KEY )
+                this.environment.getEnv( Variable.SMS_TWILIO_PRIVATE_KEY )
         );
 
-        String redirectSms = environment.getEnv( Variable.REDIRECT_SMS );
-
-        if ( redirectSms != null && !redirectSms.isBlank() && !redirectSms.toUpperCase().equals( "NONE" ) ) {
-            to = redirectSms;
-        }
-
-        Message
+        Message result = Message
                 .creator(
                         new PhoneNumber( to ),
                         new PhoneNumber( name == null ? from : name ),
@@ -68,6 +62,6 @@ public class Twilio implements SmsSender {
                 )
                 .create();
 
-        return true;
+        return new Result( SmsSender.PROVIDER_TWILIO, result.getSid(), result.getErrorCode() == null );
     }
 }
