@@ -21,6 +21,8 @@ done
 
 CLASSES=(
     "$1/SmsSender.java"
+    "$1/SmsSenderImpl.java"
+    "$1/SmsMode.java"
     "$1/Twilio.java"
 )
 
