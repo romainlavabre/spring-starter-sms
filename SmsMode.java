@@ -25,7 +25,7 @@ public class SmsMode implements SmsSender {
         Response response =
                 Rest.builder()
                         .init( RequestBuilder.POST, "https://rest.smsmode.com/sms/v1/messages" )
-                        .withXApiKey( Variable.SMS_SMS_MODE_API_KEY )
+                        .withXApiKey( environment.getEnv( Variable.SMS_SMS_MODE_API_KEY ) )
                         .jsonBody( Map.of(
                                 "recipient", Map.of(
                                         "to", to
